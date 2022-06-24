@@ -1,14 +1,37 @@
 
 const App = require("./app.model.js");
+const Joi = require("joi");
 
 // Create and Save a new Message
 exports.create = async (req, res) => {
-  const value = new App.Task({
+ const payload = req.body.tasks;
+
+ const schema = Joi.object({
+    description: Joi.string().min(5).max(25).required(),
+    faite: Joi.boolean().required(),
+    creePar: Joi.number().required(),
+
+  });
+  
+
+    const value = new App.Task({
     description: req.body.tasks.description,
     faite: req.body.tasks.faite,
     creePar: req.body.tasks.creePar
+    
   });
-  value
+
+  /*const {result, error} = schema.validate(payload);
+    if (error) {
+        throw new Error(error.details[0].message);
+    }*/
+
+ 
+  const { data, error } = schema.validate(payload);
+  if (error) res.status(400).send({ erreur: error.details[0].message });
+
+  else{
+    value
     .save()
     .then((data) => {
       res.send(data);
@@ -19,6 +42,9 @@ exports.create = async (req, res) => {
           err.message || "Some error occurred while creating the Message.",
       });
     });
+  }
+ 
+  
 };
 
 

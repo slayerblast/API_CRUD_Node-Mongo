@@ -4,7 +4,9 @@ const app = express();
 const mongoose = require("mongoose");
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
+require('./routes.js')(app);
 require('dotenv').config();
+
 
 
 
@@ -16,14 +18,13 @@ mongoose.connect(process.env.URL_DB)
 
 
 
-
 //route de sur l'URL de base
 app.get('/', (req, res) => {
     res.json({"message": "Server is running :D"});
 });
 
 
-require('./routes.js')(app);
+
 //lancement du serveur sur le port 3000
 app.listen(process.env.PORT, () => {
     console.log(`Server is listening on port ${process.env.PORT}`);
