@@ -1,11 +1,13 @@
 
 const App = require("./app.model.js");
+const bcrypt = require('bcryptjs');
 const Joi = require("joi");
 
 // Create and Save a new Message
 exports.create = async (req, res) => {
  const payload = req.body.tasks;
 
+//validation avec Joi
  const schema = Joi.object({
     description: Joi.string().min(5).max(25).required(),
     faite: Joi.boolean().required(),
@@ -140,3 +142,54 @@ exports.delete = (req, res) => {
       });
     });
 };
+
+exports.register = async (req, res) => {
+  let _id = 1
+  console.log(req.body.users)
+  const payload = req.body.users;
+ //validation avec Joi
+ const schema = Joi.object({
+  _id: Joi.allow(),
+  email: Joi.string().max(255).email().required(),
+  username: Joi.string().max(255).required(),
+  password: Joi.string().max(255).required()
+});
+   
+ 
+     const value = new App.User({
+     email: req.body.users.email,
+     username: req.body.users.username,
+     password: req.body.users.password
+     
+   });
+ 
+   /*const {result, error} = schema.validate(payload);
+     if (error) {
+         throw new Error(error.details[0].message);
+     }*/
+ 
+  
+   const { data, error } = schema.validate(payload);
+
+   if (error) res.status(400).send({ erreur: error.details[0].message });
+
+   const user = await App.User.findOne({email: payload.email});
+     if(user){
+      throw new Error("Un compte existe déja");
+     }
+
+   else{
+        let id = _id++;
+        const salt = await bcrypt.genSalt(10);
+        let { password } = payload;
+        passwordHashed = await bcrypt.hash(password, salt);
+        payload.password = passwordHashed;
+
+        const user = new App.User({...payload, _id : id});
+        await user.save();
+
+        delete payload.password;
+        res.status(201).send({...payload, _id : id});
+        
+   } 
+ };
